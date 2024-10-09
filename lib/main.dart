@@ -1,18 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_setting_page_ui/SettingScreen.dart';
-
-void main() {
-  runApp(MyApp());
+import 'theme_manager.dart';
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized(); // Initialize Flutter bindings
+  ThemeMode themeMode = await ThemeManager.loadTheme(); // Load the theme
+  runApp(MyApp(themeMode));
 }
 
-class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
+class MyApp extends StatelessWidget { 
+  final ThemeMode themeMode;
+
+  MyApp(this.themeMode);
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
+      theme: ThemeData.light(),
+      darkTheme: ThemeData.dark(),
+      themeMode: themeMode,
       debugShowCheckedModeBanner: false,
       home: MyHomePage(),
     );
@@ -35,15 +39,34 @@ class MyHomePage extends StatelessWidget {
           ),
         ),
       ),
+
+
       drawer: Drawer(
         child: ListView(
           children: [
             DrawerHeader(
-              child: Text(''),
-              decoration: BoxDecoration(
-                color: Colors.blue,
-              ),
-            ),
+  child: Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      CircleAvatar(
+        radius: 40,
+        backgroundImage: AssetImage('assets/user_avatar.png'), // or NetworkImage
+      ),
+      SizedBox(height: 10),
+      Text(
+        'User Name',
+        style: TextStyle(color: Colors.white, fontSize: 18),
+      ),
+      Text(
+        'user@example.com',
+        style: TextStyle(color: Colors.white54, fontSize: 14),
+      ),
+    ],
+  ),
+  decoration: BoxDecoration(
+    color: Colors.blue,
+  ),
+),
             ListTile(
               title: Text(
                 'Profile',
@@ -81,6 +104,9 @@ class MyHomePage extends StatelessWidget {
           ],
         ),
       ),
+      
     );
   }
 }
+
+

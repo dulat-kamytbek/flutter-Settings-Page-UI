@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_setting_page_ui/main.dart';
+import 'theme_manager.dart';
 
 class SettingScreen extends StatefulWidget {
   @override
@@ -8,9 +9,30 @@ class SettingScreen extends StatefulWidget {
 }
 
 class _SettingScreenState extends State<SettingScreen> {
+  bool isDarkMode = false;
   bool valueNotify1 = true;
   bool valueNotify2 = false;
   bool valueNotify3 = true;
+  @override
+  void initState() {
+    super.initState();
+    _loadTheme();
+  }
+  void _loadTheme() async {
+    final themeMode = await ThemeManager.loadTheme();
+    setState(() {
+      isDarkMode = themeMode == ThemeMode.dark;
+    });
+  }
+  void _toggleTheme(bool newValue) async {
+    setState(() {
+      isDarkMode = newValue;
+    });
+    await ThemeManager.saveTheme(isDarkMode ? ThemeMode.dark : ThemeMode.light);
+    // Optionally, you can restart the app or notify the main app to rebuild
+    // For example, using a method to rebuild the app with the new theme.
+    (context as Element).rebuild(); // Force rebuild
+  }
 
   onChangeFunction1(bool newValue1) {
     setState(() {
@@ -56,6 +78,11 @@ class _SettingScreenState extends State<SettingScreen> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
+                 buildNotificationOption(
+              'Theme Dark',
+              isDarkMode,
+              _toggleTheme,
+            ),
               ],
             ),
             Divider(height: 20, thickness: 1),
@@ -147,20 +174,60 @@ class _SettingScreenState extends State<SettingScreen> {
   }
 }
 
+
 GestureDetector buildAccountOption(BuildContext context, String title) {
   return GestureDetector(
     onTap: () {
       showDialog(
-          context: context,
-          builder: (BuildContext context) {
+        context: context,
+        builder: (BuildContext context) {
+          if (title == 'Change Password') {
             return AlertDialog(
               title: Text(title),
-              content: Column(mainAxisSize: MainAxisSize.min,
-                  // crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Option1'),
-                    Text('Option2'),
-                  ]),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    obscureText: true,
+                    decoration: InputDecoration(
+                      labelText: 'Current Password',
+                    ),
+                  ),
+                  TextField(
+                    obscureText: true,
+                    decoration: InputDecoration(
+                      labelText: 'New Password',
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  child: Text('Cancel'),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                ),
+                TextButton(
+                  child: Text('Submit'),
+                  onPressed: () {
+                    // Handle password change logic here
+                    Navigator.pop(context);
+                  },
+                ),
+              ],
+            );
+          } else {
+            // For other account options, show a simple dialog
+            return AlertDialog(
+              title: Text(title),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('Option1'),
+                  Text('Option2'),
+                ],
+              ),
               actions: [
                 TextButton(
                   child: Text('Close'),
@@ -170,7 +237,9 @@ GestureDetector buildAccountOption(BuildContext context, String title) {
                 ),
               ],
             );
-          });
+          }
+        },
+      );
     },
     child: Container(
       padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
@@ -196,33 +265,33 @@ GestureDetector buildAccountOption(BuildContext context, String title) {
   );
 }
 
-Padding buildNotificationOption(
-    String title, bool value, Function onChangeMethod) {
-  return Padding(
-    padding: EdgeInsets.symmetric(vertical: 8, horizontal: 20),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w500,
-            color: Colors.grey[600],
+
+ Padding buildNotificationOption(String title, bool value, Function onChangeMethod) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 8, horizontal: 20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey[600],
+            ),
           ),
-        ),
-        Transform.scale(
-          scale: 0.7,
-          child: CupertinoSwitch(
-            activeColor: Colors.blue,
-            trackColor: Colors.grey,
-            value: value,
-            onChanged: (bool newValue) {
-              onChangeMethod(newValue);
-            },
+          Transform.scale(
+            scale: 0.7,
+            child: CupertinoSwitch(
+              activeColor: Colors.blue,
+              trackColor: Colors.grey,
+              value: value,
+              onChanged: (bool newValue) {
+                onChangeMethod(newValue);
+              },
+            ),
           ),
-        ),
-      ],
-    ),
-  );
-}
+        ],
+      ),
+    );
+  }
